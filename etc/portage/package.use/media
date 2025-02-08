@@ -1,0 +1,4 @@
+# Enable the pic flag for these.
+media-libs/x264 pic
+media-video/ffmpeg pic
+media-lib/xvid pic
