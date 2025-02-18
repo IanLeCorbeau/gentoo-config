@@ -4,7 +4,7 @@
 # Note 2: It might be wise to enable the AMDPGU target?
 
 */* -llvm_targets_AArch64
-*/* -llvm_targets_AMDGPU
+#*/* -llvm_targets_AMDGPU
 */* -llvm_targets_ARM
 */* -llvm_targets_AVR
 */* -llvm_targets_BPF
