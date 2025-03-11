@@ -1,0 +1,110 @@
+diff -up dmenu-5.3.orig/config.def.h dmenu-5.3/config.def.h
+--- dmenu-5.3.orig/config.def.h	2025-03-10 19:56:46.098804392 -0400
++++ dmenu-5.3/config.def.h	2025-03-10 19:48:17.430792322 -0400
+@@ -4,17 +4,20 @@
+ static int topbar = 1;                      /* -b  option; if 0, dmenu appears at bottom     */
+ /* -fn option overrides fonts[0]; default X11 font or font set */
+ static const char *fonts[] = {
+-	"monospace:size=10"
++	"DejaVu Sans Mono:size=12"
+ };
+ static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
+ static const char *colors[SchemeLast][2] = {
+ 	/*     fg         bg       */
+ 	[SchemeNorm] = { "#bbbbbb", "#222222" },
+-	[SchemeSel] = { "#eeeeee", "#005577" },
++	[SchemeSel] = { "#eeeeee", "#5294E2" },
+ 	[SchemeOut] = { "#000000", "#00ffff" },
+ };
+ /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
+ static unsigned int lines      = 0;
++/* -h option; minimum height of a menu line */
++static unsigned int lineheight = 24;
++static unsigned int min_lineheight = 8;
+ 
+ /*
+  * Characters not considered part of a word while deleting words
+diff -up dmenu-5.3.orig/dmenu.1 dmenu-5.3/dmenu.1
+--- dmenu-5.3.orig/dmenu.1	2025-03-10 19:56:46.098804392 -0400
++++ dmenu-5.3/dmenu.1	2025-03-10 19:29:29.522765559 -0400
+@@ -6,6 +6,8 @@ dmenu \- dynamic menu
+ .RB [ \-bfiv ]
+ .RB [ \-l
+ .IR lines ]
++.RB [ \-h
++.IR height ]
+ .RB [ \-m
+ .IR monitor ]
+ .RB [ \-p
+@@ -50,6 +52,9 @@ dmenu matches menu items case insensitiv
+ .BI \-l " lines"
+ dmenu lists items vertically, with the given number of lines.
+ .TP
++.BI \-h " height"
++dmenu uses a menu line of at least 'height' pixels tall, but no less than 8.
++.TP
+ .BI \-m " monitor"
+ dmenu is displayed on the monitor number supplied. Monitor numbers are starting
+ from 0.
+diff -up dmenu-5.3.orig/dmenu.c dmenu-5.3/dmenu.c
+--- dmenu-5.3.orig/dmenu.c	2025-03-10 19:56:46.102804392 -0400
++++ dmenu-5.3/dmenu.c	2025-03-10 19:29:29.522765559 -0400
+@@ -147,7 +147,7 @@ drawmenu(void)
+ {
+ 	unsigned int curpos;
+ 	struct item *item;
+-	int x = 0, y = 0, w;
++	int x = 0, y = 0, fh = drw->fonts->h, w;
+ 
+ 	drw_setscheme(drw, scheme[SchemeNorm]);
+ 	drw_rect(drw, 0, 0, mw, mh, 1, 1);
+@@ -164,7 +164,7 @@ drawmenu(void)
+ 	curpos = TEXTW(text) - TEXTW(&text[cursor]);
+ 	if ((curpos += lrpad / 2 - 1) < w) {
+ 		drw_setscheme(drw, scheme[SchemeNorm]);
+-		drw_rect(drw, x + curpos, 2, 2, bh - 4, 1, 0);
++		drw_rect(drw, x + curpos, 2 + (bh - fh) / 2, 2, fh - 4, 1, 0);
+ 	}
+ 
+ 	if (lines > 0) {
+@@ -634,6 +634,7 @@ setup(void)
+ 
+ 	/* calculate menu geometry */
+ 	bh = drw->fonts->h + 2;
++	bh = MAX(bh,lineheight);	/* make a menu line AT LEAST 'lineheight' tall */
+ 	lines = MAX(lines, 0);
+ 	mh = (lines + 1) * bh;
+ #ifdef XINERAMA
+@@ -715,7 +716,7 @@ setup(void)
+ static void
+ usage(void)
+ {
+-	die("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
++	die("usage: dmenu [-bfiv] [-l lines] [-h height] [-p prompt] [-fn font] [-m monitor]\n"
+ 	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]");
+ }
+ 
+@@ -742,6 +743,10 @@ main(int argc, char *argv[])
+ 		/* these options take one argument */
+ 		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
+ 			lines = atoi(argv[++i]);
++		else if (!strcmp(argv[i], "-h")) { /* minimum height of one menu line */
++			lineheight = atoi(argv[++i]);
++			lineheight = MAX(lineheight, min_lineheight);
++		}
+ 		else if (!strcmp(argv[i], "-m"))
+ 			mon = atoi(argv[++i]);
+ 		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
+Only in dmenu-5.3: dmenu.c.orig
+diff -up dmenu-5.3.orig/drw.c dmenu-5.3/drw.c
+--- dmenu-5.3.orig/drw.c	2025-03-10 19:56:46.102804392 -0400
++++ dmenu-5.3/drw.c	2025-03-10 19:37:31.530776996 -0400
+@@ -261,6 +261,8 @@ drw_text(Drw *drw, int x, int y, unsigne
+ 	} else {
+ 		XSetForeground(drw->dpy, drw->gc, drw->scheme[invert ? ColFg : ColBg].pixel);
+ 		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
++		if (w < lpad)
++			return x + w;
+ 		d = XftDrawCreate(drw->dpy, drw->drawable,
+ 		                  DefaultVisual(drw->dpy, drw->screen),
+ 		                  DefaultColormap(drw->dpy, drw->screen));
