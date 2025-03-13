@@ -1,0 +1,4 @@
+app-emulation/qemu spice usbredir qemu_softmmu_targets_x86_64 qemu_user_targets_x86_64
+app-emulation/libvirt apparmor
+app-emulation/virt-manager gui
+net-misc/spice-gtk usbredir
