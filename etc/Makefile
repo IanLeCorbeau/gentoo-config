@@ -27,7 +27,7 @@ portagedirs:
 install: dirs portagedirs
 	install -m 644 nftables.rules ${DESTDIR}/etc
 	install -m 644 dracut.conf.d/gentoo.conf ${DESTDIR}/etc/dracut.conf.d
-	install -m 644 local.d/rm-machineid.stop ${DESTDIR}/etc/local.d
+	install -m 755 local.d/rm-machineid.stop ${DESTDIR}/etc/local.d
 	install -m 644 ${LOGROTATE} ${DESTDIR}/etc/logrotate.d
 	install -m 644 rsyslog.d/nftables.log ${DESTDIR}/rsyslog.d
 	install -m 644 smtpd/smtpd.conf ${DESTDIR}/smtpd
