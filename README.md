@@ -1,7 +1,8 @@
 # gentoo-config
 
-[Ragnarok](https://github.com/RagnarokOS) will eventually be re-based on
-Gentoo. This is the test repo for its Portage config files.
+Personal config files for Gentoo/Ragnarok. This is built on top of
+[Ragnarok](https://github.com/RagnarokOS)'s src repo, and includes stuff
+that aren't part of its base system.
 
 ## Testing
 
